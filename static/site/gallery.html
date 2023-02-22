@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{{PROTOCOL}}://{{ADDRESS}}/site.css" />
+    <link rel="stylesheet" href="{{PROTOCOL}}://{{ADDRESS}}/bootstrap.css" />
+    <link rel="stylesheet" href="{{PROTOCOL}}://{{ADDRESS}}/fa/css/all.css" />
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/libraries/bootstrap/jquery-3.3.1.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/libraries/bootstrap/popper.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/libraries/bootstrap/bootstrap.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/libraries/vue.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/libraries/axios.js"></script>
+    <title>gallery</title>
+  </head>
+
+  <body>
+    <div id="gallery">
+      <notification :alerts="alerts"></notification>
+
+      <navigator
+        v-on:postrandom="postRandom"
+        v-on:download="downloadPost"
+        v-on:processqueue="processQueue"
+        @viewterminal="showTerminal"
+        v-on:queuerandom="queueRandom"
+      ></navigator>
+
+      <paginator
+        :initpage="page"
+        :initpages="pages"
+        :initcurrentpage="currentPage"
+        :showhomebutton="true"
+        :inithomepage="homePage"
+        :username="username"
+        v-on:changepage="changePage"
+        v-on:setsecureuser="setsecureuser"
+        :showsecurebutton="true"
+        :issecure="status"
+      ></paginator>
+
+      <div style="right: 170px" class="topcorner-right mt-1">
+        <button class="btn btn-outline-secondary fas fa-th" @click="clearGallery"></button>
+      </div>
+
+      <queue-metrics class="topcorner-right" style="right: 40px" :queuestats="queueStats"></queue-metrics>
+
+      <terminal :viewterminal="displayterminal" @hideterminal="hideTerminal"></terminal>
+
+      <div class="container">
+        <div class="row">
+          <div class="col-12">
+            <div class="card-group">
+              <div class="columns medium-3" v-for="gallery in galleries">
+                <div class="card ml-1 mt-1 align-items-center" :style=" { width: (imageSize.width + 5) + 'px' }">
+                  <div style="right: 0px; top: 0px; position: absolute" v-if="gallery.queueStatus != 'notqueue'">
+                    <div
+                      class=""
+                      style="text-decoration: none; border-radius: 5px; width: 10px; height: 10px; border: 1px solid silver"
+                      :style="{ 'background-color': queueStatus(gallery.queueStatus)}"
+                    >
+                      &nbsp;
+                    </div>
+                  </div>
+                  <a href="#">
+                    <img
+                      class="card-img-top"
+                      v-on:click="showImage(gallery.feedId, gallery.id)"
+                      :src="gallery.thumbnail"
+                      :style=" { width: imageSize.width + 'px', height: imageSize.height + 'px' }"
+                      style="min-width: 100px"
+                    />
+                  </a>
+
+                  <div class="card-text">
+                    <div class="btn-group btn-group-sm mt-2 mb-2" role="group" aria-label="menu">
+                      <i class="btn btn-secondary btn-sm fas fa-star" v-on:click="markAsFavorite(gallery.id)"></i>
+                      <i class="btn btn-secondary btn-sm fas fa-images" v-on:click="setthumbnail(gallery.id)"></i>
+                      <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-secondary fas fa-bars" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
+                        <div class="dropdown-menu">
+                          <div class="dropdown-item link">
+                            <a v-on:click="createpost(gallery.feedId)"> <i class="fab fa-instagram-square"></i>&nbsp;Post</a>
+                          </div>
+                          <div class="dropdown-item link" v-on:click="queue(gallery.feedId)"><i class="fas fa-layer-group"></i>&nbsp;Queue</div>
+                          <div class="dropdown-item link" v-on:click="showPriorityQueue(gallery.feedId)">
+                            <i class="fas fa-dollar-sign"></i>&nbsp;Priority Queue
+                          </div>
+                          <div class="dropdown-item link" v-on:click="addNewFeed(gallery.id)"><i class="fas fa-plus"></i>&nbsp;Add New Feed</div>
+                          <div class="dropdown-item link" v-on:click="changeUser(gallery.id)"><i class="fas fa-user"></i>&nbsp;Change User</div>
+                        </div>
+                      </div>
+                      <i class="btn btn-danger btn-sm fas fa-trash-alt" v-on:click="deleteImage(gallery.id)"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="topcorner-right">
+        <div style="text-align: right; width: 100%; cursor: pointer">
+          <i class="fas fa-layer-group" v-on:click="createFeed"></i>
+        </div>
+        <div style="width: 25vw; height: 40vh; background-color: rgba(0, 0, 0, 0.9); border-radius: 5px; overflow-x: auto" v-show="isCreatingFeed">
+          <div class="card-group">
+            <div class="columns medium-3 ml-1 mt-1 mb-1" v-for="image in feed">
+              <div class="card ml-1 mt-1 align-items-center" style="width: 70px; height: 110px">
+                <div style="right: -3px; top: -8px; z-index: 1000; position: absolute">
+                  <a
+                    href="#"
+                    style="color: red; text-decoration: none; background-color: white; border-radius: 10px"
+                    class="fas fa-times-circle"
+                    @click="removeImageFromFeed(image.id)"
+                  ></a>
+                </div>
+                <img
+                  class="card-img-top"
+                  :src="image.thumbnail"
+                  style="width: 70px; height: 110px; position: fixed"
+                  v-on:mouseover="mouseover(image.id, $event)"
+                  v-on:mouseleave="mouseleave"
+                />
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="btn-group btn-group-sm mt-2 mr-2 mb-2" role="group" aria-label="" style="position: absolute; bottom: 0; right: 0">
+              <button @click="uploadFeed" type="button" class="btn btn-light fas fa-upload"></button>
+              <button @click="cleanFeed" type="button" class="btn btn-danger fas fa-trash-alt"></button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <img
+            v-if="thumbnailIsActive"
+            :src="thumbnail"
+            style="position: fixed"
+            :style="{ top: (thumbnailPosition.top + 5) + 'px', left: (thumbnailPosition.left + 5 - 160) + 'px' }"
+          />
+        </div>
+      </div>
+
+      <paginator
+        :initpage="page"
+        :initpages="pages"
+        :initcurrentpage="currentPage"
+        :showhomebutton="true"
+        :inithomepage="homePage"
+        v-on:changepage="changePage"
+      ></paginator>
+
+      <div v-show="showDivImage" class="fixed-top imageView" v-on:click="">
+        <div class="fixed-top text-center mt-2" aria-hidden="true">
+          <div class="btn-group btn-group-sm" role="group" aria-label="" style="z-index: 1000">
+            <span class="btn" :class="{ 'btn-danger': codeIsDifferet, 'btn-light': !codeIsDifferet}">{{imageState.code}}</span>
+            <i class="btn btn-dark fas fa-chevron-circle-left" v-if="imageState && imageState.p" v-on:click="showImage(null, imageState.p)"></i>
+            <i class="btn btn-dark fas fa-chevron-circle-right" v-if="imageState && imageState.n" v-on:click="showImage(null, imageState.n)"></i>
+            <i class="btn btn-dark fas fa-hashtag" v-if="imageState" v-on:click="addTag"></i>
+            <i class="btn btn-dark fab fa-instagram-square" v-on:click="createpost"></i>
+            <i class="btn btn-dark fas fa-layer-group" v-on:click="queue"></i>
+            <i class="btn btn-dark fas fa-plus" v-on:click="addNewFeed(imageState.id)"></i>
+            <i class="btn btn-dark fas fa-eye-slash" v-on:click="hideImage"></i>
+            <i class="btn btn-danger fas fa-trash-alt" v-if="imageState" v-on:click="deleteImage(imageState.id)"></i>
+          </div>
+          <div class="mr-3" style="z-index: 100; width: 30vw; max-width: 30vw; position: absolute; right: 0; top: 0">
+            <a
+              href="#"
+              class="badge ml-1 mr-1"
+              v-on:click="setTag(tag)"
+              :class="{ 'badge-secondary': !isTaginUse(tag), 'badge-success': isTaginUse(tag)}"
+              v-for="(tag, index) in tags"
+              >({{index + 1}}) {{tag}}
+            </a>
+          </div>
+        </div>
+        <div class="mt-5">
+          <div class="container-fluid">
+            <div class="row">
+              <div class="col" style="height: 100vh" @click="showImage(null, imageState.p)"></div>
+              <div class="col-auto">
+                <img style="max-width: 80vw" :class="{ small: smallSize, zoomin: smallSize }" :src="image" v-on:click="resize" />
+              </div>
+              <div class="col" style="height: 100vh" @click="showImage(null, imageState.n)"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div v-if="showModal">
+        <transition name="modal">
+          <div class="modal-mask">
+            <div class="modal-wrapper">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title">Change User</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true" @click="showModal = false">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    <table>
+                      <tr>
+                        <td>
+                          <input type="text" class="form-control" placeholder="destination" v-model="modal.search" @keyup.enter="searchUser" />
+                        </td>
+                        <td>
+                          <select class="custom-select" v-model="modal.currentUser">
+                            <option :value="user" v-for="user in modal.users">{{user}}</option>
+                          </select>
+                        </td>
+                      </tr>
+                    </table>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @click="showModal = false">Close</button>
+                    <button type="button" class="btn btn-primary" @click="changeUserApply">Apply</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </transition>
+      </div>
+
+      <div v-if="priorityQueue.show">
+        <transition name="modal">
+          <div class="modal-mask">
+            <div class="modal-wrapper">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title">Priority Queue</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true" @click="priorityQueue.show = false">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    <div class="container-fluid">
+                      <div class="row">
+                        <div class="col-2 text-right">Time</div>
+                        <div class="col-10">
+                          hour<input type="number" name="" id="hour" class="form-control form-control-sm" min="0" max="23" v-model="priorityQueue.time.hour" />
+                          minute
+                          <input type="number" name="" id="minutes" class="form-control form-control-sm" min="0" max="59" v-model="priorityQueue.time.minute" />
+                          <hr />
+                          day<input type="number" name="" id="day" class="form-control form-control-sm" min="1" max="31" v-model="priorityQueue.time.day" />
+                          month<input
+                            type="number"
+                            name=""
+                            id="month"
+                            class="form-control form-control-sm"
+                            min="1"
+                            max="12"
+                            v-model="priorityQueue.time.month"
+                          />
+                          year<input type="number" name="" id="year" class="form-control form-control-sm" min="2020" v-model="priorityQueue.time.year" />
+                        </div>
+                      </div>
+                      <div class="row mt-2">
+                        <div class="col-2 text-right">Caption</div>
+                        <div class="col-10"><textarea class="form-control" cols="36" rows="3" v-model="priorityQueue.caption"></textarea></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" @click="priorityQueue.show=false">Cancel</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" @click="onPriorityQueue">Accept</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </transition>
+      </div>
+
+      <confirm :title="confirm.title" :message="confirm.message" :showconfirm="confirm.show" @accept="accept" @cancel="cancel"></confirm>
+
+      <loading :loading="isLoading"></loading>
+    </div>
+  </body>
+  <script src="{{PROTOCOL}}://{{ADDRESS}}/shared.js"></script>
+  <script src="{{PROTOCOL}}://{{ADDRESS}}/loading.js"></script>
+  <script src="{{PROTOCOL}}://{{ADDRESS}}/navigator.js"></script>
+  <script src="{{PROTOCOL}}://{{ADDRESS}}/paginator.js"></script>
+  <script src="{{PROTOCOL}}://{{ADDRESS}}/notification.js"></script>
+  <script src="{{PROTOCOL}}://{{ADDRESS}}/terminal.js"></script>
+  <script src="{{PROTOCOL}}://{{ADDRESS}}/confirm.js"></script>
+  <script src="{{PROTOCOL}}://{{ADDRESS}}/queuemetrics.js"></script>
+  <script src="{{PROTOCOL}}://{{ADDRESS}}/gallery.js"></script>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{{PROTOCOL}}://{{ADDRESS}}/site.css" />
+    <link rel="stylesheet" href="{{PROTOCOL}}://{{ADDRESS}}/bootstrap.css" />
+    <link rel="stylesheet" href="{{PROTOCOL}}://{{ADDRESS}}/fa/css/all.css" />
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/libraries/bootstrap/jquery-3.3.1.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/libraries/bootstrap/popper.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/libraries/bootstrap/bootstrap.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/libraries/vue.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/libraries/axios.js"></script>
+    <title>configuration</title>
+  </head>
+  <body>
+    <div id="configuration-manager">
+      <notification :alerts="alerts"></notification>
+      <navigator
+        v-on:postrandom="postRandom"
+        v-on:download="downloadPost"
+        v-on:processqueue="processQueue"
+        v-on:queuerandom="queueRandom"
+        @viewterminal="showTerminal"
+      >
+      </navigator>
+      <terminal :viewterminal="displayterminal" @hideterminal="hideTerminal"></terminal>
+      <div class="container mt-5">
+        <div class="row mb-4">
+          <div class="col-12"><h3>Configuration</h3></div>
+        </div>
+        <div class="row">
+          <div class="col-6">
+            <div class="form-group box">
+              <div class="container-fluid">
+                <div class="row">
+                  <div class="col text-left align-middle mt-3"><h5>Queue</h5></div>
+                  <div class="col text-right">
+                    <button class="btn btn-outline-secondary btn-sm mt-3 mb-3" @click="applyQueue">apply</button>
+                  </div>
+                </div>
+              </div>
+              <label>Cron</label>
+              <input type="text" class="form-control form-control-sm" aria-describedby="" v-model="queue.cron" />
+              <label for="">Limit</label>
+              <input type="number" class="form-control form-control-sm" aria-describedby="" v-model="queue.limit" />
+            </div>
+            <div class="form-group box">
+              <div class="container-fluid">
+                <div class="row">
+                  <div class="col text-left align-middle mt-3"><h5>Scrapper</h5></div>
+                  <div class="col text-right"><button class="btn btn-outline-secondary btn-sm mt-3 mb-3" @click="applyScrapper">apply</button></div>
+                </div>
+              </div>
+              <label for="">User</label>
+              <input type="text" class="form-control form-control-sm" v-model="scrapperUser.username" />
+              <label for="">Password</label>
+              <input type="password" class="form-control form-control-sm" v-model="scrapperUser.password" />
+            </div>
+            <div class="form-group box">
+              <div class="container-fluid">
+                <div class="row">
+                  <div class="col text-left align-middle mt-3"><h5>Poster</h5></div>
+                  <div class="col text-right"><button class="btn btn-outline-secondary btn-sm mt-3 mb-3" @click="applyPoster">apply</button></div>
+                </div>
+              </div>
+              <label for="">User</label>
+              <input type="text" class="form-control form-control-sm" v-model="posterUser.username" />
+              <label for="">Password</label>
+              <input type="password" class="form-control form-control-sm" v-model="posterUser.password" />
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="form-group box">
+              <div class="text-right">
+                <button class="btn btn-outline-secondary btn-sm mt-3 mb-3" @click="addtags">add</button>
+              </div>
+              <div style="max-height: 570px; min-height: 570px; max-width: 600px; overflow: auto">
+                <table class="table-striped table table-sm table-hover">
+                  <thead>
+                    <tr>
+                      <th>key</th>
+                      <th>tags</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="map in tags.maptags">
+                      <td>{{map.key}}</td>
+                      <td>{{map.values.reduce((tags, tag)=>{ return tags += `#${tag} ` }, ' ')}}</td>
+                      <td class="text-right">
+                        <button @click="edittags(map.key)" class="btn btn-light btn-sm fas fa-edit"></button>
+                        <button @click="removetags(map.key)" class="btn btn-danger btn-sm fas fa-trash-alt"></button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div v-if="tags.showEditTags">
+        <transition name="modal">
+          <div class="modal-mask">
+            <div class="modal-wrapper">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title">Edit Tags</h5>
+                    <small :class="{'fas fa-edit': tags.editmode, 'far fa-file': !tags.editmode}"></small>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true" @click="tags.showEditTags = false">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    <div class="input-group input-group-sm mb-3">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text">key</span>
+                      </div>
+                      <input type="text" class="form-control" aria-label="" v-model="tags.key" />
+                    </div>
+                    <div class="input-group input-group-sm mb-3">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text">tags</span>
+                      </div>
+                      <input type="text" class="form-control" aria-label="" v-model="tags.tags" />
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @click="tags.showEditTags = false">Close</button>
+                    <button type="button" class="btn btn-primary" @click="savetags">Apply</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </transition>
+      </div>
+      <confirm :title="confirm.title" :message="confirm.message" :showconfirm="confirm.show" @accept="accept" @cancel="cancel"></confirm>
+      <loading :loading="isLoading"></loading>
+    </div>
+  </body>
+  <script src="{{PROTOCOL}}://{{ADDRESS}}/shared.js"></script>
+  <script src="{{PROTOCOL}}://{{ADDRESS}}/terminal.js"></script>
+  <script src="{{PROTOCOL}}://{{ADDRESS}}/loading.js"></script>
+  <script src="{{PROTOCOL}}://{{ADDRESS}}/navigator.js"></script>
+  <script src="{{PROTOCOL}}://{{ADDRESS}}/notification.js"></script>
+  <script src="{{PROTOCOL}}://{{ADDRESS}}/confirm.js"></script>
+  <script src="{{PROTOCOL}}://{{ADDRESS}}/configuration.js"></script>
+</html>

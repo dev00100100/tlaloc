@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{{PROTOCOL}}://{{ADDRESS}}/site.css" />
+    <link rel="stylesheet" href="{{PROTOCOL}}://{{ADDRESS}}/bootstrap.css" />
+    <link rel="stylesheet" href="{{PROTOCOL}}://{{ADDRESS}}/fa/css/all.css" />
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/libraries/bootstrap/jquery-3.3.1.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/libraries/bootstrap/popper.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/libraries/bootstrap/bootstrap.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/libraries/vue.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/libraries/axios.js"></script>
+    <title>feeds</title>
+  </head>
+
+  <body>
+    <div id="queue-manager" class="">
+      <notification :alerts="alerts"></notification>
+
+      <navigator
+        v-on:postrandom="postRandom"
+        v-on:download="downloadPost"
+        v-on:processqueue="processQueue"
+        @viewterminal="showTerminal"
+        v-on:queuerandom="queueRandom"
+      ></navigator>
+      <terminal :viewterminal="displayterminal" @hideterminal="hideTerminal"></terminal>
+      <div class="container-fluid mt-5">
+        <div class="row mb-3">
+          <div class="col-1"></div>
+          <div class="col-1">
+            <h5>Feeds</h5>
+          </div>
+          <div class="col-9 d-flex justify-content-end">
+            <form class="form-inline" v-on:submit.prevent="search">
+              <button type="button" class="btn btn-outline-secondary btn-sm mr-2 ml-2" @click="emptyFeeds">Empty Feeds</button>
+              <input class="form-control form-control-sm" type="text" id="query" placeholder="search" v-model="searchTerm" v-on:keyup="" />
+              <button type="button" class="btn btn-outline-secondary btn-sm mr-2 ml-2" v-on:click="search({ page: 0 })">Search</button>
+              <button type="button" class="btn btn-outline-secondary btn-sm mr-2" v-on:click="reload(true)">Clear</button>
+            </form>
+          </div>
+          <div class="col-1"></div>
+        </div>
+        <div class="row">
+          <div class="col-1"></div>
+          <div class="col-10 d-flex justify-content-center table-striped">
+            <table class="table table-hover table-sm">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Code</th>
+                  <th>Tags</th>
+                  <th>Create</th>
+                  <th>#Images</th>
+                  <th>#Published</th>
+                  <th>
+                    <button type="button" v-on:click="reload(false)" class="btn btn-light fas fa-redo"></button>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="feed in feeds">
+                  <td><a :href="galleryLink(feed.username, feed.id)" target="_blank">{{feed.username}}</a></td>
+                  <td>{{feed.code}}</td>
+                  <td>
+                    <span style="font-size: 10px">{{feed.tags}}</span>
+                  </td>
+                  <td>
+                    <span style="font-size: 10px">{{feed.created}}</span>
+                  </td>
+                  <td>
+                    <span style="font-size: 10px">{{feed.imageCount}}</span>
+                  </td>
+                  <td>
+                    <span style="font-size: 10px">{{feed.publishedCount}}</span>
+                  </td>
+                  <td>
+                    <button v-on:click="showimages(feed.id)" type="button" class="btn btn-light fas fa-eye btn-sm"></button>
+                    <!-- <button v-on:click="post(feed.id)" type="button" class="btn btn-light fab fa-instagram-square btn-sm"></button>
+                                        <button v-on:click="queue(feed.id)" type="button" class="btn btn-light fas fa-layer-group btn-sm"></button> -->
+                    <button v-on:click="remove(feed.id)" type="button" class="btn btn-danger fas fa-trash-alt btn-sm"></button>
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="7">
+                    <paginator :initpage="page" :initpages="pages" :initcurrentpage="currentPage" v-on:changepage="changePage"></paginator>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          <div class="col-1"></div>
+        </div>
+      </div>
+      <div class="imageView fixed-top" v-show="showimage" style="z-index: 1001">
+        <div type="button" class="topcorner-right btn btn-dark fas fa-times" v-on:click="hideimages"></div>
+        <div class="container mt-5">
+          <div class="row">
+            <div class="col-12">
+              <div class="card-group">
+                <div class="columns medium-3" v-for="image in images">
+                  <div class="card ml-1 mt-1 align-items-center" style="width: 190px; height: 290px">
+                    <img class="card-img-top" :src="image.thumbnail" style="width: 190px; height: 290px" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <loading :loading="isLoading"></loading>
+    </div>
+
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/shared.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/loading.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/navigator.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/paginator.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/notification.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/terminal.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/feeds.js"></script>
+  </body>
+</html>

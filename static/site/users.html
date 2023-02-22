@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{PROTOCOL}}://{{ADDRESS}}/site.css">
+    <link rel="stylesheet" href="{{PROTOCOL}}://{{ADDRESS}}/bootstrap.css">
+    <link rel="stylesheet" href="{{PROTOCOL}}://{{ADDRESS}}/fa/css/all.css">
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/libraries/bootstrap/jquery-3.3.1.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/libraries/bootstrap/popper.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/libraries/bootstrap/bootstrap.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/libraries/vue.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/libraries/axios.js"></script>   
+    <title>users</title>
+</head>
+
+<body>
+    <div id="user-manager" class="">
+        <notification :alerts="alerts"></notification>
+        <navigator v-on:postrandom="postRandom" v-on:download="downloadPost" v-on:processqueue="processQueue"
+            v-on:queuerandom="queueRandom" @viewterminal="showTerminal">
+        </navigator>
+        <terminal :viewterminal="displayterminal" @hideterminal="hideTerminal"></terminal>
+        <div class="container-fluid mt-5">
+            <div class="row mb-3">
+                <div class="col-1"></div>
+                <div class="col-1">
+                    <h5>Users</h5>
+                </div>
+                <div class="col-9 d-flex justify-content-end">
+                    <form class="form-inline" v-on:submit.prevent="search">
+                        <div style="border: 1px solid #e3e1e1; border-radius: 5px; padding: 2px; padding-left:5px; margin-right: 5px; margin-left: 5px"
+                            class="form-inline">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" name="status"
+                                    v-model="searchFilter.favorite" :disabled="!searchFilter.userfavorite">
+                                <label class="form-check-label" for="inlineCheckbox1"
+                                    @click="searchFilter.userfavorite = !searchFilter.userfavorite">favorite</label>
+                            </div>
+                        </div>
+                        <form class="form-inline" v-on:submit.prevent="search">
+                            <div style="border: 1px solid #e3e1e1; border-radius: 5px; padding: 2px; padding-left:5px; margin-right: 10px; margin-left: 5px"
+                                class="form-inline">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="status" value="secure"
+                                        id="rd-secure" v-model="searchFilter.status">
+                                    <label class="form-check-label" for="rd-secure">secure</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="status" value="notsecure"
+                                        id="rd-notesecure" v-model="searchFilter.status">
+                                    <label class="form-check-label" for="rd-notesecure">not secure</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="status" value="sharer"
+                                        id="rd-sharer" v-model="searchFilter.status">
+                                    <label class="form-check-label" for="rd-sharer">sharer</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="status" value="unknown"
+                                        id="rd-unknow" v-model="searchFilter.status">
+                                    <label class="form-check-label" for="rd-unknow">unknown</label>
+                                </div>
+                            </div>
+                            <input class="form-control form-control-sm" type="text" id="query" placeholder="search"
+                                v-model="searchFilter.searchTerm" v-on:keyup="">
+                            <button type="button" class="btn btn-outline-secondary btn-sm mr-2 ml-2"
+                                v-on:click="search">Search</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm mr-2"
+                                v-on:click="reload">Clear</button>
+                        </form>
+                </div>
+                <div class="col-1"></div>
+            </div>
+            <div class="row">
+                <div class="col-1"></div>
+                <div class="col-10 d-flex justify-content-center table-striped">
+                    <table class="table table-hover table-sm">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th><span @click="sortBy('username')" style="cursor: pointer;">Name</span></th>
+                                <th>Link</th>
+                                <th><span @click="sortBy('favorite')" style="cursor: pointer;">Favorite</span></th>
+                                <th>Status</th>
+                                <th>Caption</th>
+                                <th>Created</th>
+                                <th><span @click="sortBy('size')" style="cursor: pointer;">Size</span></th>
+                                <th><div style="width: 20px; height: 20px; border-radius: 10px;" class="active"></div></th>
+                                <th><div style="width: 20px; height: 20px; border-radius: 10px;" class="pending"></div></th>
+                                <th><div style="width: 20px; height: 20px; border-radius: 10px;" class="posted"></div></th>
+                                <th><div style="width: 20px; height: 20px; border-radius: 10px;" class="sh-error"></div></th>
+                                <th>#Pblsh</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="user in users">
+                                <td>
+                                    <span style="cursor: pointer;" class="fas fa-eye btn-sm"
+                                        @click="showImage(user._id)"></span>
+                                </td>
+                                <td><a :href="galleryLink(user.username)" target="_blank">{{user.username}}</a></td>
+                                <td><a :href="instagramLink(user.username)" target="_blank">link</a></td>
+                                <td>
+                                    <div class="status-user sharer" @click="setFavorite(user.username)"
+                                        style="cursor: pointer;"
+                                        :class="{'fas fa-star': user.favorite,'far fa-star': !user.favorite }"></div>
+                                </td>
+                                <td>
+                                    <div class="fas status-user" style="cursor: pointer;" :class="{'fa-check secure': user.status === 'secure',
+                                    'fa-times notsecure': user.status === 'notsecure',
+                                    'fa-share-alt sharer': user.status === 'sharer',
+                                    'fa-question unknown': user.status === 'unknown'}"
+                                        @click="changeUserType(user.username)"></div>
+                                </td>
+                                <td>
+                                    <span v-show="!user.editting" style="font-size: 10px" v-text="user.caption"
+                                        @click="editCaption(user._id, true)"></span>
+
+                                    <textarea class="form-control" style="font-size: 10px" :ref="`caption_${user._id}`"
+                                        cols="10" rows="10" @keypress="validateCharacteres" v-show="user.editting"
+                                        v-model="user.caption" @blur="editCaption(user._id, false)"></textarea>
+                                </td>
+                                <td><span style="font-size: 10px">{{user.created}}</span></td>
+                                <td><span style="font-size: 10px">{{user.size}}</span></td>
+                                <td><span style="font-size: 10px">{{user.queueStats.active.count}}</span></td>
+                                <td><span style="font-size: 10px">{{user.queueStats.pending.count}}</span></td>
+                                <td><span style="font-size: 10px">{{user.queueStats.posted.count}}</span></td>
+                                <td><span style="font-size: 10px">{{user.queueStats.error.count}}</span></td>
+                                <td><span style="font-size: 10px">{{user.publishedCount ? user.publishedCount : 0}}</span></td>
+                                <td>
+                                    <button @click="remove(user._id)" type="button"
+                                        class="btn btn-danger fas fa-trash-alt btn-sm"></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="13">
+                                    <paginator :initpage="page" :initpages="pages" :initcurrentpage="currentPage" :usekeypress="true"
+                                        v-on:changepage="changePage"></paginator>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="col-1"></div>
+            </div>
+        </div>
+        <div class="imageView fixed-top" v-show="showimage" style="z-index: 1001;" tabindex="0"
+            @keydown.esc="hideimages">
+            <div type="button" class=" topcorner-right btn btn-dark fas fa-times" v-on:click="hideimages"></div>
+            <div class="container mt-5">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card-group">
+                            <div class="columns medium-3">
+                                <div class="card ml-1 mt-1 align-items-center" style="width: 190px; height: 290px;">
+                                    <img class="card-img-top" :src="thumbnail" style="width: 190px; height: 290px;" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <confirm :title="confirm.title" :message="confirm.message" :showconfirm="confirm.show" @accept="accept"
+            @cancel="cancel"></confirm>
+        <loading :loading="isLoading"></loading>
+    </div>
+
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/shared.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/terminal.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/loading.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/navigator.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/paginator.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/notification.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/confirm.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/users.js"></script>
+</body>
+
+</html>

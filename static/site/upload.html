@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{{PROTOCOL}}://{{ADDRESS}}/site.css" />
+    <link rel="stylesheet" href="{{PROTOCOL}}://{{ADDRESS}}/bootstrap.css" />
+    <link rel="stylesheet" href="{{PROTOCOL}}://{{ADDRESS}}/fa/css/all.css" />
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/libraries/bootstrap/jquery-3.3.1.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/libraries/bootstrap/popper.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/libraries/bootstrap/bootstrap.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/libraries/vue.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/libraries/axios.js"></script>
+    <title>upload</title>
+  </head>
+
+  <body>
+    <div id="upload-manager" class="">
+      <notification :alerts="alerts"></notification>
+      <navigator
+        v-on:postrandom="postRandom"
+        v-on:download="downloadPost"
+        v-on:processqueue="processQueue"
+        v-on:queuerandom="queueRandom"
+        @viewterminal="showTerminal"
+      >
+      </navigator>
+      <terminal :viewterminal="displayterminal" @hideterminal="hideTerminal"></terminal>
+
+      <div class="container mt-5">
+        <div class="row mb-3">
+          <div class="col-12">
+            <h5>Upload</h5>
+          </div>
+        </div>
+        <div>
+          <div class="row">
+            <div class="col-2 text-right">user name</div>
+            <div class="col-3"><input type="text" v-model="username" class="form-control form-control-sm" /></div>
+            <div class="col-7">
+              <select class="form-control form-control-sm">
+                <option value="">1</option>
+                <option value="">2</option>
+              </select>
+            </div>
+          </div>
+          <div class="row mt-3 mb-1">
+            <div class="col-2 text-right">user type</div>
+            <div class="col-10">
+              <input type="radio" id="instagram" /> <label for="instagram">instagram</label> <input type="radio" id=twitter"" />
+              <label for="twitter">twitter</label> <input type="radio" id="fb" /> <label for="fb">facebook</label> <input type="radio" name="" id="wb" />
+              <label for="wb">weibo</label>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-2"></div>
+            <div class="col-10">
+              <div>
+                <div v-if="currentFile" class="progress">
+                  <div
+                    class="progress-bar progress-bar-info progress-bar-striped"
+                    role="progressbar"
+                    :aria-valuenow="progress"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    :style="{ width: progress + '%' }"
+                  >
+                    {{ progress }}%
+                  </div>
+                </div>
+
+                <!-- <label class="btn btn-default">
+                  <input class="" type="file" ref="file" @change="selectFile" multiple="multiple" />
+                </label> -->
+
+                <div class="input-group mb-3">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text">Upload</span>
+                  </div>
+                  <div class="custom-file">
+                    <input type="file" class="custom-file-input" id="files" ref="file" @change="selectFile" multiple="multiple" />
+                    <label class="custom-file-label" for="files">{{fileSelected}}</label>
+                  </div>
+                </div>
+
+                <button class="btn btn-success" @click="upload">Upload</button>
+                <div v-if="selectedFiles.length > 0 && fileInfos.length == 0">
+                  Selected Files
+                  <ul>
+                    <li v-for="file in selectedFiles">{{file.name}} - {{file.size}}</li>
+                  </ul>
+                </div>
+                <div v-if="fileInfos.length > 0">
+                  Upload Files
+                  <div class="alert alert-light" role="alert">{{ message }}</div>
+                  <ul>
+                    <li v-for="file in fileInfos">{{file.name}} - {{file.size}}</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <loading :loading="isLoading"></loading>
+    </div>
+
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/shared.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/terminal.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/loading.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/navigator.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/notification.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/upload.js"></script>
+  </body>
+</html>

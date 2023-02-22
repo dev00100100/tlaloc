@@ -1,0 +1,46 @@
+{
+  "name": "instagram",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "body-parser": "^1.19.0",
+    "class-transformer": "^0.3.1",
+    "cors": "^2.8.5",
+    "cron-parser": "^2.16.3",
+    "crypto-js": "^4.0.0",
+    "dateformat": "^3.0.3",
+    "express": "^4.17.1",
+    "express-fileupload": "^1.1.10",
+    "express-session": "^1.17.1",
+    "handy-storage": "^2.1.6",
+    "instagram-private-api": "^1.41.0",
+    "instagram-web-api": "^2.2.0",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.9.26",
+    "nodaemon": "0.0.5",
+    "node-cron": "^2.0.3",
+    "nodemon": "^2.0.20",
+    "sharp": "^0.25.4",
+    "socket.io": "^2.3.0",
+    "store": "^2.0.12",
+    "tough-cookie-filestore2": "^1.0.0",
+    "underscore": "^1.11.0",
+    "xpath-html": "^1.0.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jrgaragon/instagram.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jrgaragon/instagram/issues"
+  },
+  "homepage": "https://github.com/jrgaragon/instagram#readme"
+}

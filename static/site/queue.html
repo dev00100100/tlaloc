@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{{PROTOCOL}}://{{ADDRESS}}/site.css" />
+    <link rel="stylesheet" href="{{PROTOCOL}}://{{ADDRESS}}/bootstrap.css" />
+    <link rel="stylesheet" href="{{PROTOCOL}}://{{ADDRESS}}/fa/css/all.css" />
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/libraries/bootstrap/jquery-3.3.1.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/libraries/bootstrap/popper.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/libraries/bootstrap/bootstrap.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/libraries/vue.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/libraries/axios.js"></script>
+    <title>queue</title>
+  </head>
+
+  <body>
+    <div id="queue-manager" class="">
+      <notification :alerts="alerts"></notification>
+      <navigator
+        v-on:postrandom="postRandom"
+        v-on:download="downloadPost"
+        v-on:processqueue="processQueue"
+        v-on:queuerandom="queueRandom"
+        @viewterminal="showTerminal"
+      >
+      </navigator>
+      <terminal :viewterminal="displayterminal" @hideterminal="hideTerminal"></terminal>
+      <div class="container-fluid mt-5">
+        <div class="row mb-3">
+          <div class="col-1"></div>
+          <div class="col-1">
+            <h5>Queue</h5>
+          </div>
+          <div class="col-9 d-flex justify-content-end">
+            <form class="form-inline" v-on:submit.prevent="search">
+              <div
+                style="border: 1px solid #e3e1e1; border-radius: 5px; padding: 2px; padding-left: 5px; margin-right: 5px; margin-left: 5px"
+                class="form-inline"
+              >
+                <div
+                  style="width: 20px; height: 20px; border-radius: 10px; font-size: 10px; color: white; padding: 2px"
+                  class="active text-center align-middle mt-1 ml-1"
+                >
+                  {{stats.active}}
+                </div>
+                <div
+                  style="width: 20px; height: 20px; border-radius: 10px; font-size: 10px; color: black; padding: 2px"
+                  class="pending text-center align-middle mt-1 ml-2 mr-1"
+                >
+                  {{stats.pending}}
+                </div>
+                <div
+                  style="width: 20px; height: 20px; border-radius: 10px; font-size: 10px; color: white; padding: 2px"
+                  class="posted text-center align-middle mt-1 ml-1 mr-1"
+                >
+                  {{stats.posted}}
+                </div>
+                <div
+                  style="width: 20px; height: 20px; border-radius: 10px; font-size: 10px; color: white; padding: 2px"
+                  class="sh-error text-center align-middle mt-1 ml-1 mr-1"
+                >
+                  {{stats.error}}
+                </div>
+              </div>
+              <div
+                style="border: 1px solid #e3e1e1; border-radius: 5px; padding: 2px; padding-left: 5px; margin-right: 5px; margin-left: 5px"
+                class="form-inline"
+              >
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" name="type" id="radio-type-normal" value="normal" v-model="searchFilter.type" />
+                  <label class="form-check-label" for="radio-type-normal">normal</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" name="type" id="radio-type-inmediate" value="inmediate" v-model="searchFilter.type" />
+                  <label class="form-check-label" for="radio-type-inmediate">inmediate</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" name="type" id="radio-type-priority" value="priority" v-model="searchFilter.type" />
+                  <label class="form-check-label" for="radio-type-priority">priority</label>
+                </div>
+              </div>
+              <div
+                style="border: 1px solid #e3e1e1; border-radius: 5px; padding: 2px; padding-left: 5px; margin-right: 5px; margin-left: 5px"
+                class="form-inline"
+              >
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" name="status" id="inlineCheckbox1" value="active" v-model="searchFilter.status" />
+                  <label class="form-check-label" for="inlineCheckbox1">active</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" name="status" id="inlineCheckbox2" value="pending" v-model="searchFilter.status" />
+                  <label class="form-check-label" for="inlineCheckbox2">pending</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" name="status" id="inlineCheckbox3" value="posted" v-model="searchFilter.status" />
+                  <label class="form-check-label" for="inlineCheckbox3">posted</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" name="status" id="inlineCheckbox3" value="error" v-model="searchFilter.status" />
+                  <label class="form-check-label" for="inlineCheckbox3">error</label>
+                </div>
+              </div>
+              <input class="form-control form-control-sm" type="text" id="query" placeholder="search" v-model="searchFilter.searchTerm" v-on:keyup="" />
+              <button type="button" class="btn btn-outline-secondary btn-sm mr-2 ml-2" v-on:click="search">Search</button>
+              <button type="button" class="btn btn-outline-secondary btn-sm mr-2" v-on:click="reload">Clear</button>
+            </form>
+          </div>
+          <div class="col-1"></div>
+        </div>
+        <div class="row">
+          <div class="col-1"></div>
+          <div class="col-10 d-flex justify-content-center table-striped">
+            <table class="table table-hover table-sm">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Status</th>
+                  <th>Type</th>
+                  <th style="min-width: 50px">Priority</th>
+                  <th>Caption</th>
+                  <th>Tags</th>
+                  <th style="min-width: 120px">NRT</th>
+                  <th style="min-width: 120px">Created</th>
+                  <th style="min-width: 120px">Posted</th>
+                  <th style="min-width: 120px"><button type="button" v-on:click="reload" class="btn btn-light fas fa-redo"></button></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="queue in queues">
+                  <td><a :href="galleryLink(queue.feed.username, queue.feed.id)" target="_blank">{{queue.feed.username}}</a></td>
+                  <td>
+                    <span
+                      class="statushighlight td-text"
+                      v-on:click="changeStatus(queue.id)"
+                      :class="{ 'sh-active': (queue.status === 'active'), 
+                                        'sh-posted': (queue.status ==='posted'),
+                                        'sh-pending': (queue.status === 'pending'),
+                                        'sh-error': (queue.status === 'error'),
+                                        'sh-locked': (queue.status === 'locked') }"
+                      >{{queue.status}}
+                    </span>
+                  </td>
+                  <td>
+                    <span
+                      class="td-text statushighlight"
+                      :class="{ qnormal: queue.type === 'normal', 
+                      qpriority: queue.type === 'priority', 
+                      qinmediate: queue.type === 'inmediate'}"
+                      >{{queue.type}}</span
+                    >
+                  </td>
+                  <td>
+                    <select class="custom-select custom-select-sm" v-model="queue.priority" @change="updatePriority(queue.id, queue.priority)">
+                      <option :value="p" v-for="p of 10">{{p}}</option>
+                    </select>
+                  </td>
+                  <td class="text-left">
+                    <span class="text-center"><a href="#" @click="editCaption(queue.id)">edit</a></span>
+                  </td>
+                  <td>
+                    <span
+                      v-show="!queue.edittag"
+                      style="font-size: 10px"
+                      v-text="tagsFeed(queue.feed.id)"
+                      @click="editTags(queue.id, true)"
+                      class="text-break td-text"
+                    ></span>
+                    <input
+                      class="form-control"
+                      :ref="`tag_${queue.id}`"
+                      @keypress="validateCharacteres"
+                      v-show="queue.edittag"
+                      type="text"
+                      :value="queue.feed.tags.reduce((tags, tag)=> tags+= ` ${tag}`, ' ')"
+                      @blur="editTags(queue.id, false)"
+                    />
+                  </td>
+                  <td><span class="td-text">{{ queue.type==="priority" ? queue.nextRunTime : ""}}</span></td>
+                  <td><span class="td-text">{{queue.created}}</span></td>
+                  <td><span class="td-text">{{queue.posted}}</span></td>
+                  <td>
+                    <button v-on:click="processQueueItem(queue.id)" type="button" class="btn btn-light fab fa-instagram-square btn-sm"></button>
+                    <button v-on:click="showimages(queue.feed.id)" type="button" class="btn btn-light fas fa-eye btn-sm"></button>
+                    <button v-on:click="remove(queue.id)" type="button" class="btn btn-danger fas fa-trash-alt btn-sm"></button>
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="10">
+                    <paginator :initpage="page" :initpages="pages" :initcurrentpage="currentPage" v-on:changepage="changePage" :usekeypress="true"></paginator>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          <div class="col-1"></div>
+        </div>
+      </div>
+      <div class="imageView fixed-top" v-show="showimage" style="z-index: 1001" tabindex="0" @keydown.esc="hideimages">
+        <div type="button" class="topcorner-right btn btn-dark fas fa-times" v-on:click="hideimages"></div>
+        <div class="container mt-5">
+          <div class="row">
+            <div class="col-12">
+              <div class="card-group">
+                <div class="columns medium-3" v-for="image in images">
+                  <div class="card ml-1 mt-1 align-items-center" style="width: 190px; height: 290px">
+                    <img class="card-img-top" :src="image.thumbnail" style="width: 190px; height: 290px" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="modalData.caption.show">
+        <transition name="modal">
+          <div class="modal-mask">
+            <div class="modal-wrapper">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title">Caption Edit</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true" @click="modalData.caption.show=fals">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    <div class="container-fluid">
+                      <div class="row mt-2">
+                        <div class="col-2 text-right">Caption</div>
+                        <div class="col-10"><textarea class="form-control" cols="40" rows="5" v-model="modalData.caption.caption"></textarea></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" @click="modalData.caption.show=false">Cancel</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" @click="onEditCaption">Accept</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </transition>
+      </div>
+
+      <confirm :title="confirm.title" :message="confirm.message" :showconfirm="confirm.show" @accept="accept" @cancel="cancel"></confirm>
+      <loading :loading="isLoading"></loading>
+    </div>
+
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/shared.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/terminal.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/loading.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/navigator.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/paginator.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/notification.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/confirm.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}/queue.js"></script>
+  </body>
+</html>

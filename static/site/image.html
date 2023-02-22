@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{{PROTOCOL}}://{{ADDRESS}}:3000/site.css" />
+    <link rel="stylesheet" href="{{PROTOCOL}}://{{ADDRESS}}:3000/bootstrap.css" />
+    <link rel="stylesheet" href="{{PROTOCOL}}://{{ADDRESS}}:3000/fa/css/all.css" />
+    <script src="{{PROTOCOL}}://{{ADDRESS}}:3000/libraries/bootstrap/jquery-3.3.1.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}:3000/libraries/bootstrap/popper.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}:3000/libraries/bootstrap/bootstrap.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}:3000/libraries/vue.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}:3000/libraries/axios.js"></script>
+    <script src="{{PROTOCOL}}://{{ADDRESS}}:3000/libraries/socket.io.js"></script>
+    <title>Image</title>
+  </head>
+  <body>
+    <div id="images">
+      <nav class="navbar navbar-dark bg-dark">
+        <h5 class="navbar-brand">scrapper</h5>
+      </nav>
+      <div class="container mt-3 mb-3">
+        <div class="row">
+          <div class="col">
+            <paginator
+              :initpage="0"
+              :initpages="10"
+              :initcurrentpage="currentPage"
+              :showhomebutton="false"
+              :inithomepage="0"
+              v-on:changepage="changePage"
+            ></paginator>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            <div class="card-group">
+              <div class="columns medium-3 ml-1 mr-1 mt-1 mb-1" v-for="i in size">
+                <div class="card" :style="{ width: imageSize.width + 'px' }">
+                  <a href="#">
+                    <img
+                      src="https://i.pinimg.com/originals/ee/5e/57/ee5e57ea2e9eba43497ecfe1790d8c85.jpg"
+                      class="card-img-top"
+                      :style=" { width: imageSize.width + 'px', height: imageSize.height + 'px' }"
+                  /></a>
+
+                  <div class="card-body">
+                    <span>model</span>
+                    <div>
+                      <button type="button" class="btn btn-success btn-sm">L</button>
+                      <button type="button" class="btn btn-dark btn-sm">D</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- <div class="row">
+                    <div class="col">
+                        <paginator :initpage="0" :initpages="10" :initcurrentpage="2" :showhomebutton="false" :inithomepage="0" v-on:changepage="changePage"></paginator>
+
+                    </div>
+                </div> -->
+      </div>
+    </div>
+  </body>
+  <script src="{{PROTOCOL}}://{{ADDRESS}}:3000/paginator.js"></script>
+  <script src="{{PROTOCOL}}://{{ADDRESS}}:3000/image.js"></script>
+</html>

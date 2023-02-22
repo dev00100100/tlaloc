@@ -1,0 +1,200 @@
+* {
+  box-sizing: border-box;
+}
+
+/* body {
+  background-color: #343a40 !important;
+  color: #fff !important;
+} */
+
+.spinner {
+  position: absolute;
+  height: 100px;
+  width: 100px;
+  top: 50%;
+  left: 50%;
+  margin-left: -50px;
+  margin-top: -50px;
+  background-size: 100%;
+  overflow: hidden;
+}
+
+.loading {
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.9);
+  overflow: auto;
+  max-height: 100vh;
+  z-index: -1;
+}
+
+.small {
+  max-width: 100%;
+  max-height: calc(100vh - 10vh);
+  height: auto;
+  cursor: zoom-out;
+}
+
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.terminal {
+  position: absolute;
+  left: calc((50% / 2.5));
+  top: 10%;
+  background-color: rgba(0, 0, 0, 0.9);
+  width: 60vw;
+  height: 60vh;
+  z-index: 1000;
+  border-radius: 5px 5px 5px 5px;
+}
+
+.zoomin {
+  cursor: zoom-in;
+}
+
+.imageView {
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.9);
+  overflow: auto;
+  max-height: 100vh;
+}
+
+.link {
+  cursor: pointer;
+}
+
+.topcorner {
+  position: fixed;
+  top: 5px;
+  left: 5px;
+}
+
+.topcorner-right {
+  position: fixed;
+  top: 5px;
+  right: 5px;
+}
+
+.sh-active {
+  background-color: #2c7a33;
+  color: #ffffff;
+}
+
+.sh-posted {
+  background-color: #707070;
+  color: #ffffff;
+}
+
+.sh-locked {
+  background-color: black;
+  color: #ffffff;
+}
+
+.sh-pending {
+  background-color: #c8d64a;
+  color: #000000;
+}
+
+.sh-error {
+  background-color: red;
+  color: #ffffff;
+}
+
+.statushighlight {
+  border-radius: 3px;
+  padding: 2px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.active {
+  background-color: #2c7a33;
+}
+
+.posted {
+  background-color: #424949;
+}
+
+.pending {
+  background-color: #c8d64a;
+}
+
+.modal-mask {
+  position: fixed;
+  z-index: 9998;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: table;
+  transition: opacity 0.3s ease;
+}
+
+.modal-wrapper {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.status-user {
+  width: 25px;
+  height: 25px;
+  border-radius: 25px;
+  text-align: center;
+  vertical-align: middle;
+  padding-top: 5px;
+}
+
+.secure {
+  background-color: #2c7a33;
+  color: white;
+}
+
+.notsecure {
+  background-color: red;
+  color: white;
+}
+
+.sharer {
+  background-color: yellow;
+  color: black;
+}
+
+.unknown {
+  background-color: gray;
+  color: white;
+}
+
+.box {
+  border: 1px solid silver;
+  border-radius: 5px;
+  margin: 5px 5px 10px 5px;
+  padding: 5px 5px 10px 5px;
+}
+
+.td-text {
+  font-size: 10px;
+}
+
+.qnormal {
+  background-color: cornflowerblue;
+  color: #fff;
+  font-weight: bold;
+}
+
+.qpriority {
+  background-color: orange;
+  color: #fff;
+  font-weight: bold;
+}
+
+.qinmediate {
+  background-color: yellow;
+  color: black;
+  font-weight: bold;
+}
